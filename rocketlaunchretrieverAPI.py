@@ -1,30 +1,34 @@
-#imports
+# Imports
 from flask import Flask, jsonify
+from flask_cors import CORS
 import time
-#globals
+import requests
+# Initialize Flask app
 app = Flask(__name__)
+CORS(app)
+
+# Global variables
 current_date = time.strftime("%Y-%m-%d")
+cache_file = 'launch_data_cache.json'
+cache_duration = 3600  # Cache duration in seconds (1 hour)
 
-#{"id": ('#'), "name": "(mission name)", "rocket": "(rocket name)", "date": "(date)"}
 
-#RocketLaunchRetrieverAPI
-launches = [
-    {"id": 1, "name": "THEOS-2, Triton & others", "rocket": "Vega", "date": "2023-10-09"},
-    {"id": 2, "name": "Starlink Group 6-22", "rocket": "Falcon 9 Block 5", "date": "2023-10-09"},
-    {"id": 3, "name": "Starlink Group 7-4", "rocket": "Falcon 9 Block 5", "date": "2023-10-09"},
-]
-
+# Routes
 @app.route('/launches/upcoming')
 def get_upcoming_launches():
-    # Return a JSON response with upcoming launches
-    upcoming_launches = [launch for launch in launches if launch["date"] >= "2023-10-04"]
-    return jsonify(upcoming_launches)
+    url = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming'
+    response = requests.get(url)
+    if response.status_code == 200:
+        launches = response.json()
+    return jsonify(launches)
 
 @app.route('/launches/previous')
 def get_previous_launches():
-    # Return a JSON response with previous launches
-    previous_launches = [launch for launch in launches if launch["date"] < "2023-10-04"]
-    return jsonify(previous_launches)
+    url = 'https://ll.thespacedevs.com/2.2.0/launch/previous'
+    response = requests.get(url)
+    if response.status_code == 200:
+        launches = response.json()
+    return jsonify(launches)
 
 if __name__ == '__main__':
     app.run(debug=True)
